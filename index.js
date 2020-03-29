@@ -1,12 +1,12 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
-
+require("dotenv").config();
 const db = require("./db");
 const userRouter = require("./routes/trello-router");
 
 const app = express();
-const apiPort = 3000;
+const apiPort = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
