@@ -2,12 +2,14 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 const CardSchema = new Schema({
   name: { type: String },
-  containerID: { type: String }
+  containerID: { type: String },
+  boardID: { type: String },
+  userID: { type: String }
 });
 const ContainerSchema = new Schema({
   name: { type: String },
   boardID: { type: String },
-  card: [CardSchema]
+  userID: { type: String }
 });
 const UserSchema = new Schema(
   {
@@ -16,8 +18,7 @@ const UserSchema = new Schema(
     password: { type: String, required: true },
     boards: [
       {
-        name: { type: String },
-        container: [ContainerSchema]
+        name: { type: String }
       }
     ]
   },

@@ -1,20 +1,24 @@
 // const User = require("../db/models/user");
 // const Card = require("../db/models/user");
 const jwt = require("jsonwebtoken");
-
+const crypto = require("crypto");
 const { User } = require("../db/models/user");
 const { Card } = require("../db/models/user");
 const { Container } = require("../db/models/user");
 signup = async (req, res) => {
   const body = req.body;
-  console.log("body:=================================================", body);
+
+  //CRYPTING PASSWORD
+  let cipher = crypto.createCipher("aes-256-cbc", "cat");
+  let crypted = cipher.update(body.password, "utf8", "hex");
+  crypted += cipher.final("hex");
+  body.password = crypted;
+
   await User.findOne({ email: body.email }, (err, user) => {
     if (user) {
-      console.log("already exists");
       return res.status(400).end("email already exists!");
     } else {
       const user = new User(body);
-      console.log("does not exists");
       user
         .save()
         .then(() => {
@@ -24,7 +28,6 @@ signup = async (req, res) => {
           });
         })
         .catch(error => {
-          console.log("error: ", error);
           return res.status(400).json({
             error,
             message: "user not created!"
@@ -34,39 +37,48 @@ signup = async (req, res) => {
   });
 };
 login = async (req, res) => {
-  // console.log("req:=================================================", req);
+  const body = req.body;
+
+  //CRYPTING PASSWORD
+  let cipher = crypto.createCipher("aes-256-cbc", "cat");
+  let crypted = cipher.update(body.password, "utf8", "hex");
+  crypted += cipher.final("hex");
+  body.password = crypted;
+
   const { email, password } = req.body;
   await User.findOne({ email: email, password: password }, (err, user) => {
-    // console.log("user: ", user);
     if (err) {
       return res.status(400).end("error...");
     }
     if (!user) {
-      console.log("couldnt find");
       return res.status(404).end("User not found");
     }
     let userID = { userID: user._id };
+    //SENDING AUTH TOKEN
     let token = jwt.sign(userID, "secret", { expiresIn: "1h" });
+
     return res.status(200).json({ userID: user._id, token: token });
   }).catch(err => console.log(err));
 };
 getUser = async (req, res) => {
-  // console.log("getUser req: ", req);
+  const body = req.body;
   const { id } = req.body;
-  // console.log("req: ", req);
-  // console.log("req.id", id);
   await User.findOne({ _id: id }, (err, user) => {
     if (err) {
       return res.status(400).end("error...");
     }
 
-    console.log("found user: ", user);
+    //DECRYPTING CRYPTO
+    let decipher = crypto.createDecipher("aes-256-cbc", "cat");
+    let dec = decipher.update(user.password, "hex", "utf8");
+    dec += decipher.final("utf8");
+
+    user.password = dec;
     return res.status(200).json({ user });
   });
 };
 
 boardCreate = async (req, res) => {
-  // console.log("boardCreate req: ", req);
   const body = req.body;
 
   if (!body) {
@@ -75,7 +87,6 @@ boardCreate = async (req, res) => {
       error: "You must provide a body to update"
     });
   }
-  // console.log("body.userID: ", body.userID);
   let newBoard = { name: body.newBoardName };
   User.findOne({ _id: body.userID, "boards.name": body.newBoardName }, function(
     error,
@@ -98,36 +109,20 @@ boardCreate = async (req, res) => {
       );
     }
   });
-
-  // Failed attempt:
-  // User.findOne({ _id: body.userID }, (err, user) => {
-  //   console.log("board before create: ", user.boards);
-  //   // user.boards = user.boards.$push({
-  //   //   name: body.newBoardName,
-  //   //   container: [{}]
-  //   // });
-  //   user.update({ boards: { name: body.newBoardName }  });
-  //   console.log("board after create: ", user.boards);
-  //   user
-  //     .save()
-  //     .then(() => {
-  //       return res.status(200).json({ user });
-  //     })
-  //     .catch(err => {
-  //       console.log(err);
-  //       return res.status(400).end("Failed to create Board!");
-  //     });
-  // });
 };
 editUserInfo = async (req, res) => {
   const body = req.body;
+
+  let cipher = crypto.createCipher("aes-256-cbc", "cat");
+  let crypted = cipher.update(body.password, "utf8", "hex");
+  crypted += cipher.final("hex");
+  body.password = crypted;
 
   User.findOneAndUpdate(
     { _id: body.id },
     { name: body.name, email: body.email, password: body.password },
     function(error, success) {
       if (error) {
-        console.log(error);
         res.status(400).end("could not create board");
       } else {
         res.status(200).end("board created!");
@@ -139,8 +134,17 @@ deleteAccount = async (req, res) => {
   const body = req.body;
   User.findOneAndDelete({ _id: body.id }, function(error, success) {
     if (error) {
-      console.log(error);
       res.status(400).end("could not delete account");
+    }
+  });
+  Container.deleteMany({ userID: body.id }, function(err) {
+    if (err) {
+      res.status(400).end("failed");
+    }
+  });
+  Card.deleteMany({ userID: body.id }, function(err) {
+    if (err) {
+      res.status(400).end("failed");
     } else {
       res.status(200).end("account successfully deleted!");
     }
@@ -155,52 +159,18 @@ containerCreate = async (req, res) => {
       error: "You must provide a body to update"
     });
   }
-  console.log("body.userID: ", body.userID);
-  // let newContainer = { name: body.newContainerName };
-  // console.log("new container: ", newContainer);
 
   const newContainer = new Container(body);
   newContainer
     .save()
     .then(() => {
-      // console.log("container creation success: ", newContainer);
       Container.find().then(containers => {
         res.status(200).json({ containers });
       });
     })
     .catch(error => {
-      console.log("error: ", error);
+      res.status(400).json({ error: error });
     });
-
-  // User.findOneAndUpdate(
-  //   { _id: body.userID, "boards._id": body.boardID },
-  //   { $addToSet: { "boards.$.container": newContainer } },
-  //   { new: true },
-  //   function(error, user) {
-  //     if (error) {
-  //       console.log(error);
-  //       res.status(400).end("could not create board");
-  //     } else {
-  //       console.log(
-  //         "container creation success, sending status 200~",
-  //         user.boards[0].container
-  //       );
-  //       res.status(200).json({ user });
-  //     }
-  //   }
-  // );
-
-  // User.findOneAndUpdate(
-  //   { _id: body.userID },
-  //   { $push: { boards: { container: body.newContainerName } } },
-  //   function(error, success) {
-  //     if (error) {
-  //       res.status(400).end("could not create board");
-  //     } else {
-  //       res.status(200).end("board created!");
-  //     }
-  //   }
-  // );
 };
 boardDelete = async (req, res) => {
   const body = req.body;
@@ -217,7 +187,6 @@ boardDelete = async (req, res) => {
     { new: true },
     function(error, user) {
       if (error) {
-        console.log(error);
         res.status(400).end("could not delete board");
       } else {
         res.status(200).json({ user });
@@ -247,7 +216,6 @@ boardEdit = async (req, res) => {
         { new: true },
         function(error, user) {
           if (error) {
-            console.log(error);
             res.status(400).end("could not delete board");
           } else {
             res.status(200).json({ user });
@@ -259,16 +227,12 @@ boardEdit = async (req, res) => {
 };
 cardCreate = async (req, res) => {
   const body = req.body;
-  console.log("body: ", body);
   if (!body) {
     return res.status(400).json({
       success: false,
       error: "You must provide a body to update"
     });
   }
-  console.log("newcardname: ", body.newCardName);
-  let newCard = { name: body.newCardName };
-  let searchQuery = "boards.$.container." + body.containerIndex + ".card";
 
   Card.findOne(
     {
@@ -278,7 +242,6 @@ cardCreate = async (req, res) => {
     { new: true },
     function(error, card) {
       if (error) {
-        console.log(error);
         res.status(400).end("could not create card");
       } else {
         const newcard = new Card(body);
@@ -286,47 +249,15 @@ cardCreate = async (req, res) => {
           .save()
           .then(() => {
             Card.find().then(cards => {
-              console.log("card creation success: ", cards);
               res.status(200).json({ cards });
             });
           })
           .catch(error => {
-            console.log("error: ", error);
+            res.status(400).json({ error: error });
           });
       }
     }
   );
-
-  // User.findOneAndUpdate(
-  //   {
-  //     _id: body.userID,
-  //     "boards._id": body.boardID,
-  //     "boards.container._id": body.containerID
-  //   },
-  //   // {
-  //   //   _id: body.userID,
-  //   //   "boards._id": body.boardID,
-  //   //   "container._id": body.containerID
-  //   // },
-  //   { $addToSet: { "boards.$[bid].container.$[id].card": newCard } },
-  //   {
-  //     arrayFilters: [
-  //       { id: { _id: body.containerID } },
-  //       { bid: { _id: body.boardID } }
-  //     ],
-  //     // multi: true,
-  //     new: true
-  //   },
-  //   function(error, user) {
-  //     if (error) {
-  //       console.log(error);
-  //       res.status(400).end("could not create card");
-  //     } else {
-  //       // console.log("card creation success: ", user.boards[0].container);
-  //       res.status(200).json({ user });
-  //     }
-  //   }
-  // );
 };
 getCards = async (req, res) => {
   Card.find().then(cards => {
@@ -345,7 +276,6 @@ containerDelete = async (req, res) => {
     { _id: body.containerID, boardID: body.boardID },
     function(error, n) {
       if (error) {
-        console.log(error);
         res.status(400).end("could not delete board");
       } else {
         Container.find().then(containers => {
@@ -376,14 +306,6 @@ containerEdit = async (req, res) => {
       });
     }
   );
-  // function(error, container) {
-  //   if (error) {
-  //     console.log(error);
-  //     res.status(400).end("could not delete board");
-  //   } else {
-  //     res.status(200).json({ container });
-  //   }
-  // }
 };
 getContainers = async (req, res) => {
   Container.find().then(containers => {
@@ -398,19 +320,15 @@ cardDelete = async (req, res) => {
       error: "You must provide a body to update"
     });
   }
-  Card.findOneAndRemove(
-    { _id: body.cardID, containerID: body.containerID },
-    function(error, n) {
-      if (error) {
-        console.log(error);
-        res.status(400).end("could not delete board");
-      } else {
-        Card.find().then(cards => {
-          res.status(200).json({ cards });
-        });
-      }
+  Card.findOneAndRemove({ _id: body.cardID }, function(error, n) {
+    if (error) {
+      res.status(400).end("could not delete board");
+    } else {
+      Card.find().then(cards => {
+        res.status(200).json({ cards });
+      });
     }
-  );
+  });
 };
 cardEdit = async (req, res) => {
   const body = req.body;
@@ -426,6 +344,29 @@ cardEdit = async (req, res) => {
       containerID: body.containerID
     },
     { $set: { name: body.newCardName } },
+    { new: true },
+    function(err, n) {
+      Card.find().then(cards => {
+        res.status(200).json({ cards });
+      });
+    }
+  );
+};
+changeCardPosition = async (req, res) => {
+  const body = req.body;
+  if (!body) {
+    return res.status(400).json({
+      success: false,
+      error: "You must provide a body to update"
+    });
+  }
+  Card.findOneAndUpdate(
+    {
+      _id: body.cardID
+    },
+    {
+      $set: { containerID: body.containerID }
+    },
     { new: true },
     function(err, n) {
       Card.find().then(cards => {
@@ -512,6 +453,7 @@ cardEdit = async (req, res) => {
 // };
 
 module.exports = {
+  changeCardPosition,
   cardEdit,
   cardDelete,
   getContainers,

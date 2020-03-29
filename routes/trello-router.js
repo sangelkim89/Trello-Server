@@ -21,8 +21,7 @@ router.post("/containerDelete", auth, TrelloCtrl.containerDelete);
 router.post("/containerEdit", auth, TrelloCtrl.containerEdit);
 router.post("/cardDelete", auth, TrelloCtrl.cardDelete);
 router.post("/cardEdit", auth, TrelloCtrl.cardEdit);
-
-// router.post("/logout", TrelloCtrl.logout);
+router.post("/changeCardPosition", TrelloCtrl.changeCardPosition);
 // router.delete("/containerDelete", TrelloCtrl.containerDelete);
 // router.put("/editName", TrelloCtrl.editName);
 // router.put("/editEmail", TrelloCtrl.editEmail);
