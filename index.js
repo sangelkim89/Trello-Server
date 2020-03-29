@@ -10,7 +10,13 @@ const apiPort = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cors({ credentials: true }));
+app.use(
+  cors({
+    origin: ["http://clonetrello.s3-website.ap-northeast-2.amazonaws.com"],
+    method: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    credentials: true
+  })
+);
 
 db.on("error", console.error.bind(console, "MongoDB connection error:"));
 
