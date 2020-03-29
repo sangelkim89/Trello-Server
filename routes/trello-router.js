@@ -5,7 +5,7 @@ const TrelloCtrl = require("../controllers/trello-ctrl");
 const router = express.Router();
 const auth = require("../middleware/auth");
 
-router.get("/signup", TrelloCtrl.signup);
+router.post("/signup", TrelloCtrl.signup);
 router.post("/login", TrelloCtrl.login);
 router.post("/getUser", auth, TrelloCtrl.getUser);
 router.post("/boardCreate", auth, TrelloCtrl.boardCreate);
