@@ -13,7 +13,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(
   cors({
     origin: ["http://clonetrello.s3-website.ap-northeast-2.amazonaws.com"],
-    method: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    method: ["*"],
     credentials: true
   })
 );
