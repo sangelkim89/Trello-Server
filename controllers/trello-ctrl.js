@@ -4,9 +4,9 @@ const { User } = require("../db/models/user");
 const { Card } = require("../db/models/user");
 const { Container } = require("../db/models/user");
 signup = async (req, res) => {
-  const body = req.query;
-  console.log(req.query);
-  // CRYPTING PASSWORD
+  const body = req.body;
+
+  //CRYPTING PASSWORD
   let cipher = crypto.createCipher("aes-256-cbc", "cat");
   let crypted = cipher.update(body.password, "utf8", "hex");
   crypted += cipher.final("hex");
