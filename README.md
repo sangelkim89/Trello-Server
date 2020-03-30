@@ -29,6 +29,17 @@ You will have to change the cors: origin to your localhost:{port} in the index.j
 
 npm start 
 
+
+-Link to project Notion page:
+
+https://www.notion.so/16-6f2aeac08897469286c88b69d7aa699f
+
+-Link to website:
+
+http://clonetrello.s3-website.ap-northeast-2.amazonaws.com/
+
+
+
 -Features : Resolvers:
 
 -signup: create an account
@@ -52,12 +63,3 @@ npm start
 -getContainers: returns all the containers
 
 -changeCardPosition: finds a card and updates its associations
-
-
--Link to project Notion page:
-
-https://www.notion.so/16-6f2aeac08897469286c88b69d7aa699f
-
--Link to website:
-
-http://clonetrello.s3-website.ap-northeast-2.amazonaws.com/
