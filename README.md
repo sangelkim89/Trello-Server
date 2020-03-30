@@ -3,20 +3,28 @@
 
 This is the server-side of the project Trello Clone.
 2. Project
+
 Stack :​
+
 ​Server :​
 
 Node.js / mongoose/ Express / JWT / MongoDB
 ​Deploy :​
 
 Heroku
+
 Before Starting: This is the server-side file for our project, make sure to check out the client-side: https://github.com/codestates/Serendipity-client/tree/master
+
 Setup :
 
 Installing : Please install with:
+
 npm(yarn) install
+
 Running the program : 
+
 You will have to change the cors: origin to your localhost:{port} in the index.js file, after doing so, open the terminal and simply type: 
+
 npm start 
 
 Features : Resolvers:
