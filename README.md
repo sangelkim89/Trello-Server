@@ -16,7 +16,7 @@ Node.js / mongoose/ Express / JWT / MongoDB
 Heroku
 
 
--Before Starting: This is the server-side file for our project, make sure to check out the client-side: https://github.com/codestates/Serendipity-client/tree/master
+-Before Starting: This is the server-side file for our project, make sure to check out the client-side: https://github.com/sangelkim89/Trello-Client
 
 
 -Installing : Please install with:
