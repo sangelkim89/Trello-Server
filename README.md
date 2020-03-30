@@ -9,7 +9,7 @@ Stack :​
 
 ​-Server :​
 
-Node.js / mongoose/ Express / JWT / MongoDB
+express/ mongoose / JWT / MongoDB
 
 ​-Deploy :​
 
